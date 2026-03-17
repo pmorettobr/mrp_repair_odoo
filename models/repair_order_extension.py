@@ -45,6 +45,11 @@ class RepairOrder(models.Model):
         store=True,
         digits=(5, 1),
     )
+    is_overdue = fields.Boolean(
+        string='Atrasada',
+        compute='_compute_progress',
+        store=True,
+    )
     os_state = fields.Selection(
         selection=[
             ('draft', 'Rascunho'),
@@ -73,6 +78,12 @@ class RepairOrder(models.Model):
             rec.components_done = done
             rec.components_in_progress = in_progress
             rec.progress_percent = (done / total * 100) if total else 0.0
+            today = fields.Date.today()
+            rec.is_overdue = bool(
+                rec.deadline_date
+                and rec.deadline_date < today
+                and rec.os_state not in ('done', 'cancel')
+            )
 
     # ── Ações de estado ───────────────────────────────────────────────────────
     def action_confirm_os(self):

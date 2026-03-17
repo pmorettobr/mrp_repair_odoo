@@ -19,7 +19,7 @@
                 <field name="partner_id" string="Cliente"/>
                 <field name="equipment_description" string="Descrição do Equipamento"/>
                 <field name="deadline_date" string="Prazo"
-                       decoration-danger="deadline_date and deadline_date &lt; current_date and os_state not in ('done','cancel')"/>
+                       decoration-danger="is_overdue"/>
                 <field name="os_state" string="Estado" widget="badge"
                        decoration-success="os_state == 'done'"
                        decoration-warning="os_state == 'in_progress'"
@@ -29,7 +29,7 @@
                 <field name="total_components" string="Processos"/>
                 <field name="components_done" string="Concluídos"/>
                 <field name="components_in_progress" string="Em Andamento"/>
-                <field name="current_date" invisible="1"/>
+                <field name="is_overdue" invisible="1"/>
             </tree>
         </field>
     </record>
@@ -75,6 +75,7 @@
                             <field name="total_components" string="Total de Processos"/>
                             <field name="components_done" string="Concluídos"/>
                             <field name="components_in_progress" string="Em Andamento"/>
+                <field name="is_overdue" invisible="1"/>
                             <field name="progress_percent" string="Progresso (%)"
                                    widget="progressbar"/>
                         </group>
