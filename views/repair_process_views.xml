@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Form do processo -->
+    <record id="view_repair_component_process_form" model="ir.ui.view">
+        <field name="name">repair.component.process.form</field>
+        <field name="model">repair.component.process</field>
+        <field name="arch" type="xml">
+            <form string="Processo de Servico">
+                <header>
+                    <button name="action_start" string="Iniciar" type="object" class="btn-primary"
+                            attrs="{'invisible': [('status', 'not in', ['waiting', 'deviation'])]}"/>
+                    <button name="action_done" string="Concluir" type="object" class="btn-success"
+                            attrs="{'invisible': [('status', '!=', 'in_progress')]}"/>
+                    <button name="action_set_deviation" string="Registrar Desvio" type="object" class="btn-danger"
+                            attrs="{'invisible': [('status', 'in', ['waiting', 'done'])]}"/>
+                    <button name="action_reset_waiting" string="Resetar" type="object"
+                            attrs="{'invisible': [('status', '=', 'waiting')]}"/>
+                    <field name="status" widget="statusbar" statusbar_visible="waiting,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="operation_label" string="Operacao"/>
+                        <h1><field name="operation_label" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Identificacao da Operacao">
+                            <field name="repair_id" string="OS" readonly="1"/>
+                            <!-- Coluna 1: Componente -->
+                            <field name="component_id" string="Componente"/>
+                            <!-- Coluna 2: Sub-componente (lista) -->
+                            <field name="sub_component_id" string="Sub-componente"
+                                   options="{'no_create': False}"/>
+                            <!-- Coluna 3: Servico -->
+                            <field name="service_type" string="Servico / Processo"/>
+                            <field name="service_name" string="Descricao do Servico"/>
+                        </group>
+                        <group string="Centro de Trabalho">
+                            <field name="workcenter_id" string="Maquina"/>
+                            <field name="machine_code" string="Codigo" readonly="1"/>
+                            <field name="department" string="Setor"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Tempo">
+                            <field name="time_start" widget="datetime"/>
+                            <field name="time_end" widget="datetime"/>
+                            <field name="duration_hours" string="Duracao (h)" readonly="1"/>
+                        </group>
+                        <group string="Desvio">
+                            <field name="has_deviation" string="Houve Desvio?"/>
+                            <field name="deviation_description"
+                                   attrs="{'invisible': [('has_deviation', '=', False)],
+                                           'required': [('has_deviation', '=', True)]}"/>
+                        </group>
+                    </group>
+                    <group string="Observacoes">
+                        <field name="notes" nolabel="1" placeholder="Observacoes sobre este processo..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         TREE PRINCIPAL — 3 colunas separadas:
+         COMPONENTE | SUB-COMPONENTE | SERVICO
+    ═══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_repair_component_process_tree" model="ir.ui.view">
+        <field name="name">repair.component.process.tree</field>
+        <field name="model">repair.component.process</field>
+        <field name="arch" type="xml">
+            <tree string="Processos de Servico"
+                  decoration-success="status == 'done'"
+                  decoration-warning="status == 'in_progress'"
+                  decoration-danger="status == 'deviation'"
+                  decoration-muted="status == 'waiting'">
+                <field name="repair_id"         string="OS"/>
+                <!-- ── 3 COLUNAS DE IDENTIFICAÇÃO ── -->
+                <field name="component_id"      string="Componente"/>
+                <field name="sub_component_id"  string="Sub-componente"/>
+                <field name="service_name"      string="Servico"/>
+                <!-- ── CENTRO DE TRABALHO ── -->
+                <field name="workcenter_id"     string="Maquina"/>
+                <field name="machine_code"      string="Cod. Maquina" optional="show"/>
+                <field name="department"        string="Setor"        optional="show"/>
+                <!-- ── STATUS E TEMPO ── -->
+                <field name="status" string="Status" widget="badge"
+                       decoration-success="status == 'done'"
+                       decoration-warning="status == 'in_progress'"
+                       decoration-danger="status == 'deviation'"
+                       decoration-muted="status == 'waiting'"/>
+                <field name="time_start"        string="Inicio"  optional="show"/>
+                <field name="time_end"          string="Fim"     optional="show"/>
+                <field name="duration_hours"    string="Horas"   optional="show"/>
+                <field name="has_deviation"     string="Desvio"  optional="show"/>
+                <!-- Botoes de acao rapida -->
+                <button name="action_start" type="object"
+                        icon="fa-play" class="btn-sm btn-warning"
+                        attrs="{'invisible': [('status', 'not in', ['waiting', 'deviation'])]}"/>
+                <button name="action_done" type="object"
+                        icon="fa-check" class="btn-sm btn-success"
+                        attrs="{'invisible': [('status', '!=', 'in_progress')]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         TREE INLINE — dentro do form do componente
+         Colunas: SUB-COMPONENTE | SERVICO | MAQUINA | STATUS | TEMPO
+    ═══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_repair_process_inline_tree" model="ir.ui.view">
+        <field name="name">repair.component.process.inline.tree</field>
+        <field name="model">repair.component.process</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom" string="Processos"
+                  decoration-success="status == 'done'"
+                  decoration-warning="status == 'in_progress'"
+                  decoration-danger="status == 'deviation'"
+                  decoration-muted="status == 'waiting'">
+                <field name="sequence" widget="handle"/>
+                <!-- Coluna 1: Componente (readonly, ja definido pelo pai) -->
+                <field name="component_id" string="Componente" readonly="1" force_save="1"/>
+                <!-- Coluna 2: Sub-componente -->
+                <field name="sub_component_id" string="Sub-componente"
+                       options="{'no_create': False}"/>
+                <!-- Coluna 3: Servico -->
+                <field name="service_type"   string="Servico" required="1"/>
+                <field name="service_name"   string="Descricao" optional="hide"/>
+                <!-- Centro de trabalho -->
+                <field name="workcenter_id"  string="Maquina" options="{'no_create': True}"/>
+                <field name="machine_code"   string="Cod."    readonly="1" optional="show"/>
+                <field name="department"     string="Setor"/>
+                <!-- Status e tempo -->
+                <field name="status" string="Status" widget="badge"
+                       decoration-success="status == 'done'"
+                       decoration-warning="status == 'in_progress'"
+                       decoration-danger="status == 'deviation'"
+                       decoration-muted="status == 'waiting'"/>
+                <field name="time_start"      string="Inicio"  widget="datetime"/>
+                <field name="time_end"        string="Fim"     widget="datetime"/>
+                <field name="duration_hours"  string="Horas"   readonly="1"/>
+                <field name="has_deviation"   string="Desvio?" widget="toggle_button"/>
+                <!-- Acoes -->
+                <button name="action_start" type="object"
+                        icon="fa-play" class="btn-sm btn-warning"
+                        attrs="{'invisible': [('status', 'not in', ['waiting', 'deviation'])]}"/>
+                <button name="action_done" type="object"
+                        icon="fa-check" class="btn-sm btn-success"
+                        attrs="{'invisible': [('status', '!=', 'in_progress')]}"/>
+                <button name="action_set_deviation" type="object"
+                        icon="fa-exclamation-triangle" class="btn-sm btn-danger"
+                        attrs="{'invisible': [('status', 'in', ['waiting', 'done'])]}"/>
+                <field name="notes" string="Observacao" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Search -->
+    <record id="view_repair_component_process_search" model="ir.ui.view">
+        <field name="name">repair.component.process.search</field>
+        <field name="model">repair.component.process</field>
+        <field name="arch" type="xml">
+            <search string="Consultar Processos">
+                <field name="repair_id"        string="OS"
+                       filter_domain="[('repair_id.name', 'ilike', self)]"/>
+                <field name="workcenter_id"    string="Maquina"/>
+                <field name="component_id"     string="Componente"/>
+                <field name="sub_component_id" string="Sub-componente"/>
+                <field name="service_name"     string="Servico"/>
+                <separator/>
+                <filter name="waiting"     string="Aguardando"   domain="[('status', '=', 'waiting')]"/>
+                <filter name="in_progress" string="Em Andamento" domain="[('status', '=', 'in_progress')]"/>
+                <filter name="done"        string="Concluidos"   domain="[('status', '=', 'done')]"/>
+                <filter name="deviation"   string="Com Desvio"   domain="[('status', '=', 'deviation')]"/>
+                <separator/>
+                <filter name="has_deviation" string="Processos c/ Desvio"
+                        domain="[('has_deviation', '=', True)]"/>
+                <group expand="1" string="Agrupar por">
+                    <filter name="group_by_os"           string="Por OS"
+                            context="{'group_by': 'repair_id'}"/>
+                    <filter name="group_by_machine"      string="Por Maquina"
+                            context="{'group_by': 'workcenter_id'}"/>
+                    <filter name="group_by_component"    string="Por Componente"
+                            context="{'group_by': 'component_id'}"/>
+                    <filter name="group_by_subcomponent" string="Por Sub-componente"
+                            context="{'group_by': 'sub_component_id'}"/>
+                    <filter name="group_by_status"       string="Por Status"
+                            context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="action_repair_process_by_os" model="ir.actions.act_window">
+        <field name="name">Consulta por OS</field>
+        <field name="res_model">repair.component.process</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5,0,0),
+            (0,0,{'view_mode':'tree','view_id':ref('view_repair_component_process_tree')}),
+            (0,0,{'view_mode':'form','view_id':ref('view_repair_component_process_form')})]"/>
+        <field name="search_view_id" ref="view_repair_component_process_search"/>
+        <field name="context">{'search_default_group_by_os': 1}</field>
+    </record>
+
+    <record id="action_repair_process_by_machine" model="ir.actions.act_window">
+        <field name="name">Consulta por Maquina</field>
+        <field name="res_model">repair.component.process</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5,0,0),
+            (0,0,{'view_mode':'tree','view_id':ref('view_repair_component_process_tree')}),
+            (0,0,{'view_mode':'form','view_id':ref('view_repair_component_process_form')})]"/>
+        <field name="search_view_id" ref="view_repair_component_process_search"/>
+        <field name="context">{'search_default_group_by_machine': 1}</field>
+    </record>
+
+</odoo>
