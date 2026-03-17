@@ -47,4 +47,16 @@
               action="action_repair_process_by_machine"
               sequence="30"/>
 
+    <!-- ── Configuração ─────────────────────────────────────────── -->
+    <menuitem id="menu_repair_os_config"
+              name="Configuração"
+              parent="menu_repair_os_root"
+              sequence="90"/>
+
+    <menuitem id="menu_repair_sub_components"
+              name="Sub-componentes"
+              parent="menu_repair_os_config"
+              action="action_repair_sub_component"
+              sequence="10"/>
+
 </odoo>
