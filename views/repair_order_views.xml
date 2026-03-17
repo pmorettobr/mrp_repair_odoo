@@ -68,6 +68,9 @@
                         <group string="Dados da OS">
                             <field name="partner_id" string="Cliente (Razão Social)" required="1"/>
                             <field name="company_id" invisible="1"/>
+                            <field name="state" invisible="1"/>
+                            <field name="invoice_method" invisible="1"/>
+                            <field name="invoiced" invisible="1"/>
                             <field name="equipment_description" string="Descrição do Equipamento"
                                    placeholder="Ex: Cilindro Hidráulico CH Martelo"/>
                             <field name="deadline_date" string="Prazo"/>
