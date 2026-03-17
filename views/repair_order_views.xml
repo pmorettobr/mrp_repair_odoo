@@ -95,8 +95,8 @@
                                            decoration-success="component_status == 'done'"
                                            decoration-warning="component_status == 'in_progress'"
                                            decoration-muted="component_status == 'pending'"/>
-                                    <button name="%(action_repair_component_processes)d"
-                                            type="action" string="Ver Processos"
+                                    <button name="action_open_processes"
+                                            type="object" string="Ver Processos"
                                             icon="fa-cogs" class="btn-sm btn-info"/>
                                 </tree>
                             </field>

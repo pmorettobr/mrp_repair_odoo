@@ -91,3 +91,24 @@ class RepairCylinderComponent(models.Model):
                 rec.component_status = 'in_progress'
             else:
                 rec.component_status = 'pending'
+
+    def action_open_processes(self):
+        """Abre o formulario do componente na aba de Processos (popup).
+        Nao usa env.ref para evitar dependencia do nome tecnico do modulo.
+        """
+        self.ensure_one()
+        # Busca a view pelo nome evitando hardcode do nome do modulo
+        view = self.env['ir.ui.view'].search([
+            ('model', '=', 'repair.cylinder.component'),
+            ('type', '=', 'form'),
+            ('name', '=', 'repair.cylinder.component.form'),
+        ], limit=1)
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'repair.cylinder.component',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'view_id': view.id if view else False,
+            'target': 'new',
+            'context': {'default_repair_id': self.repair_id.id},
+        }
