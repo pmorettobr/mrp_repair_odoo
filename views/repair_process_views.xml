@@ -28,6 +28,7 @@
                             <field name="repair_id" string="OS" readonly="1"/>
                             <!-- Coluna 1: Componente -->
                             <field name="component_id" string="Componente"/>
+                            <field name="component_type_filter" invisible="1"/>
                             <!-- Coluna 2: Sub-componente (lista) -->
                             <field name="sub_component_id" string="Sub-componente"
                                    options="{'no_create': False}"/>
@@ -123,6 +124,7 @@
                 <field name="sequence" widget="handle"/>
                 <!-- Coluna 1: Componente (readonly, ja definido pelo pai) -->
                 <field name="component_id" string="Componente" readonly="1" force_save="1"/>
+                <field name="component_type_filter" invisible="1"/>
                 <!-- Coluna 2: Sub-componente -->
                 <field name="sub_component_id" string="Sub-componente"
                        options="{'no_create': False}"/>
