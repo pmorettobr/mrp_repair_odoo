@@ -15,7 +15,7 @@
         - Tela de consulta de status por OS ou por máquina
         - Geração de relatório em CSV/Excel
     """,
-    'author': 'Paulo moretto',
+    'author': 'Seu Nome',
     'website': '',
     'depends': ['repair', 'mrp', 'stock', 'base'],
     'data': [
