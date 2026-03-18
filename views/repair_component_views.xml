@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Form do componente (abre ao clicar Ver Processos) -->
+    <!-- Form do componente -->
     <record id="view_repair_cylinder_component_form" model="ir.ui.view">
         <field name="name">repair.cylinder.component.form</field>
         <field name="model">repair.cylinder.component</field>
@@ -9,14 +9,12 @@
             <form string="Componente do Cilindro">
                 <sheet>
                     <div class="oe_title">
-                        <h1>
-                            <field name="name" placeholder="Nome do componente"/>
-                        </h1>
+                        <h1><field name="name" placeholder="Nome do componente"/></h1>
                     </div>
                     <group>
                         <group>
                             <field name="repair_id" string="OS" readonly="1"/>
-                            <field name="component_type" string="Tipo de Componente"/>
+                            <field name="component_type" string="Tipo"/>
                         </group>
                         <group>
                             <field name="component_status" string="Status" widget="badge"
@@ -35,34 +33,32 @@
                                       decoration-danger="status == 'deviation'"
                                       decoration-muted="status == 'waiting'">
                                     <field name="sequence" widget="handle"/>
-                                    <!-- Coluna 1: Componente (readonly) -->
-                                    <field name="component_id" string="Componente"
-                                           readonly="1" force_save="1"/>
+                                    <!-- Campos de controle invisíveis -->
+                                    <field name="component_id" invisible="1" force_save="1"/>
                                     <field name="component_type_filter" invisible="1"/>
-                                    <!-- Coluna 2: Sub-componente -->
+                                    <!-- Colunas principais - SEMPRE visíveis -->
                                     <field name="sub_component_id" string="Sub-componente"
                                            options="{'no_create': False}"/>
-                                    <!-- Coluna 3: Servico -->
                                     <field name="service_type" string="Serviço" required="1"/>
-                                    <field name="service_name" string="Descrição" optional="hide"/>
-                                    <!-- Centro de trabalho -->
                                     <field name="workcenter_id" string="Máquina"
                                            options="{'no_create': True}"/>
-                                    <field name="machine_code" string="Cód."
-                                           readonly="1" optional="show"/>
-                                    <field name="department" string="Setor"/>
-                                    <!-- Status e tempo -->
                                     <field name="status" string="Status" widget="badge"
                                            decoration-success="status == 'done'"
                                            decoration-warning="status == 'in_progress'"
                                            decoration-danger="status == 'deviation'"
                                            decoration-muted="status == 'waiting'"/>
-                                    <field name="time_start" string="Início" widget="datetime"/>
-                                    <field name="time_end" string="Fim" widget="datetime"/>
-                                    <field name="duration_hours" string="Horas" readonly="1"/>
+                                    <!-- Colunas secundárias - opcionais -->
+                                    <field name="department" string="Setor" optional="hide"/>
+                                    <field name="time_start" string="Início"
+                                           widget="datetime" optional="show"/>
+                                    <field name="time_end" string="Fim"
+                                           widget="datetime" optional="show"/>
+                                    <field name="duration_hours" string="Horas"
+                                           readonly="1" optional="show"/>
                                     <field name="has_deviation" string="Desvio?"
-                                           widget="toggle_button"/>
-                                    <!-- Ações rápidas -->
+                                           widget="toggle_button" optional="hide"/>
+                                    <field name="notes" string="Observação" optional="hide"/>
+                                    <!-- Botões de ação -->
                                     <button name="action_start" type="object"
                                             icon="fa-play" class="btn-sm btn-warning"
                                             attrs="{'invisible': [('status', 'not in', ['waiting', 'deviation'])]}"/>
@@ -72,7 +68,6 @@
                                     <button name="action_set_deviation" type="object"
                                             icon="fa-exclamation-triangle" class="btn-sm btn-danger"
                                             attrs="{'invisible': [('status', 'in', ['waiting', 'done'])]}"/>
-                                    <field name="notes" string="Observação" optional="show"/>
                                 </tree>
                             </field>
                         </page>
