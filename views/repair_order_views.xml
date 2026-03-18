@@ -25,9 +25,9 @@
                        decoration-warning="os_state == 'in_progress'"
                        decoration-info="os_state == 'confirmed'"
                        decoration-muted="os_state in ('cancel','draft')"/>
+                <field name="components_done" string="Concluídos"/>
+                <field name="total_components" string="Total"/>
                 <field name="progress_percent" string="Progresso" widget="progressbar"/>
-                <field name="total_components" string="Processos" optional="show"/>
-                <field name="components_done" string="Concluídos" optional="show"/>
                 <field name="is_overdue" invisible="1"/>
             </tree>
         </field>
@@ -53,11 +53,15 @@
                     <button name="action_cancel_os" string="Cancelar"
                             type="object" class="btn-danger"
                             attrs="{'invisible': [('os_state', 'in', ('done', 'cancel'))]}"/>
+                    <button name="action_open_mrp_production"
+                            string="Ver Ordem MRP"
+                            type="object" class="btn-secondary"
+                            attrs="{'invisible': [('mrp_production_id', '=', False)]}"/>
                     <field name="os_state" widget="statusbar"
                            statusbar_visible="draft,confirmed,in_progress,done"/>
                 </header>
                 <sheet>
-                    <!-- Campos nativos do repair necessarios para o ORM/JS -->
+                    <!-- Campos nativos do repair necessarios para o ORM -->
                     <field name="state" invisible="1"/>
                     <field name="product_id" invisible="1"/>
                     <field name="product_uom" invisible="1"/>
@@ -86,8 +90,13 @@
                                    placeholder="Ex: CH Martelo, Válvula Laminador..."/>
                             <field name="serial_code" string="Nº de Série / TAG"
                                    placeholder="Gerado automaticamente na Fabricação"/>
-                            <field name="equipment_description" string="Descrição Adicional"
-                                   placeholder="Contexto de uso, localização..."/>
+                            <field name="equipment_description" string="Descrição Adicional"/>
+                            <field name="bom_id" string="BOM (Lista de Materiais)"
+                                   attrs="{'invisible': [('order_type', '!=', 'fabrication')]}"
+                                   options="{'no_create': True}"/>
+                            <field name="mrp_production_id" string="Ordem MRP"
+                                   readonly="1"
+                                   attrs="{'invisible': [('mrp_production_id', '=', False)]}"/>
                         </group>
                         <group string="Prazo e Progresso">
                             <field name="deadline_date" string="Prazo"/>
@@ -101,6 +110,7 @@
                     </group>
 
                     <notebook>
+                        <!-- Aba 1: Componentes -->
                         <page string="Componentes" name="components">
                             <field name="cylinder_component_ids"
                                    context="{'default_repair_id': active_id}">
@@ -115,12 +125,60 @@
                                            decoration-success="component_status == 'done'"
                                            decoration-warning="component_status == 'in_progress'"
                                            decoration-muted="component_status == 'pending'"/>
-                                    <!-- type="object" chama metodo Python — sem dependencia de xmlid externo -->
-                                    <button name="action_open_processes"
-                                            type="object"
-                                            string="Ver Processos"
-                                            icon="fa-cogs"
-                                            class="btn-sm btn-info"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <!-- Aba 2: PROCESSOS — todos direto na OS, agrupados por componente -->
+                        <page string="Processos" name="processes">
+                            <field name="all_process_ids"
+                                   context="{'default_repair_id': active_id}"
+                                   options="{'no_create_edit': True}">
+                                <tree editable="bottom"
+                                      default_group_by="component_id"
+                                      decoration-success="status == 'done'"
+                                      decoration-warning="status == 'in_progress'"
+                                      decoration-danger="status == 'deviation'"
+                                      decoration-muted="status == 'waiting'">
+                                    <field name="sequence" widget="handle"/>
+                                    <!-- Identificação: 3 colunas -->
+                                    <field name="component_id" string="Componente"
+                                           options="{'no_create': True}"/>
+                                    <field name="component_type_filter" invisible="1"/>
+                                    <field name="sub_component_id" string="Sub-componente"
+                                           options="{'no_create': False}"/>
+                                    <field name="service_type" string="Serviço" required="1"/>
+                                    <!-- Centro de trabalho -->
+                                    <field name="workcenter_id" string="Máquina"
+                                           options="{'no_create': True}"/>
+                                    <field name="machine_code" string="Cód."
+                                           readonly="1" optional="show"/>
+                                    <field name="department" string="Setor" optional="hide"/>
+                                    <!-- Status e tempo -->
+                                    <field name="status" string="Status" widget="badge"
+                                           decoration-success="status == 'done'"
+                                           decoration-warning="status == 'in_progress'"
+                                           decoration-danger="status == 'deviation'"
+                                           decoration-muted="status == 'waiting'"/>
+                                    <field name="time_start" string="Início"
+                                           widget="datetime" optional="show"/>
+                                    <field name="time_end" string="Fim"
+                                           widget="datetime" optional="show"/>
+                                    <field name="duration_hours" string="Horas"
+                                           readonly="1" optional="show"/>
+                                    <field name="has_deviation" string="Desvio"
+                                           widget="toggle_button" optional="hide"/>
+                                    <field name="notes" string="Observação" optional="hide"/>
+                                    <!-- Botões de ação rápida -->
+                                    <button name="action_start" type="object"
+                                            icon="fa-play" class="btn-sm btn-warning"
+                                            attrs="{'invisible': [('status', 'not in', ['waiting', 'deviation'])]}"/>
+                                    <button name="action_done" type="object"
+                                            icon="fa-check" class="btn-sm btn-success"
+                                            attrs="{'invisible': [('status', '!=', 'in_progress')]}"/>
+                                    <button name="action_set_deviation" type="object"
+                                            icon="fa-exclamation-triangle" class="btn-sm btn-danger"
+                                            attrs="{'invisible': [('status', 'in', ['waiting', 'done'])]}"/>
                                 </tree>
                             </field>
                         </page>
@@ -161,11 +219,11 @@
                 <filter name="overdue" string="Atrasadas"
                         domain="[('is_overdue', '=', True)]"/>
                 <group expand="0" string="Agrupar por">
-                    <filter name="group_type"    string="Tipo"
+                    <filter name="group_type" string="Tipo"
                             context="{'group_by': 'order_type'}"/>
                     <filter name="group_partner" string="Cliente"
                             context="{'group_by': 'partner_id'}"/>
-                    <filter name="group_state"   string="Estado"
+                    <filter name="group_state" string="Estado"
                             context="{'group_by': 'os_state'}"/>
                 </group>
             </search>
