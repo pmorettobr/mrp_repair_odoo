@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         MENUS — Gestão de OS de Cilindros
+    ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- Menu raiz (aparece na barra de apps do Odoo) -->
+    <menuitem id="menu_repair_os_root"
+              name="Reparo Cilindros"
+              sequence="50"
+              web_icon="repair,static/description/icon.png"/>
+
+    <!-- ── Ordens de Serviço ─────────────────────────────────────── -->
+    <menuitem id="menu_repair_os_orders"
+              name="Ordens de Serviço"
+              parent="menu_repair_os_root"
+              sequence="10"/>
+
+    <menuitem id="menu_repair_os_list"
+              name="Programação de OS"
+              parent="menu_repair_os_orders"
+              action="action_repair_orders_os"
+              sequence="10"/>
+
+    <!-- ── Consulta de Status ────────────────────────────────────── -->
+    <menuitem id="menu_repair_os_status"
+              name="Consulta e Acompanhamento"
+              parent="menu_repair_os_root"
+              sequence="20"/>
+
+    <menuitem id="menu_repair_status_console"
+              name="Consulta de Status (Geral)"
+              parent="menu_repair_os_status"
+              action="action_repair_status_console"
+              sequence="10"/>
+
+    <menuitem id="menu_repair_by_os"
+              name="Filtrar por OS"
+              parent="menu_repair_os_status"
+              action="action_repair_process_by_os"
+              sequence="20"/>
+
+    <menuitem id="menu_repair_by_machine"
+              name="Filtrar por Máquina"
+              parent="menu_repair_os_status"
+              action="action_repair_process_by_machine"
+              sequence="30"/>
+
+</odoo>

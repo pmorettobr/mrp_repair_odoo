@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_repair_sub_component_user,repair.sub.component user,model_repair_sub_component,base.group_user,1,0,0,0
+access_repair_sub_component_manager,repair.sub.component manager,model_repair_sub_component,base.group_system,1,1,1,1
+access_repair_cylinder_component_user,repair.cylinder.component user,model_repair_cylinder_component,base.group_user,1,1,1,1
+access_repair_cylinder_component_manager,repair.cylinder.component manager,model_repair_cylinder_component,base.group_system,1,1,1,1
+access_repair_component_process_user,repair.component.process user,model_repair_component_process,base.group_user,1,1,1,1
+access_repair_component_process_manager,repair.component.process manager,model_repair_component_process,base.group_system,1,1,1,1

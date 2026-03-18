@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         TELA 2 / 3 — COMPONENTE E SEUS PROCESSOS
+         Formulário do componente com inline de processos
+    ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- Form do componente (abre ao clicar "Ver Processos") -->
+    <record id="view_repair_cylinder_component_form" model="ir.ui.view">
+        <field name="name">repair.cylinder.component.form</field>
+        <field name="model">repair.cylinder.component</field>
+        <field name="arch" type="xml">
+            <form string="Componente do Cilindro">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Nome do componente"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="repair_id" string="OS" readonly="1"/>
+                            <field name="component_type" string="Tipo de Componente"/>
+                        </group>
+                        <group>
+                            <field name="component_status" string="Status" widget="badge"
+                                   decoration-success="component_status == 'done'"
+                                   decoration-warning="component_status == 'in_progress'"
+                                   decoration-muted="component_status == 'pending'"/>
+                        </group>
+                    </group>
+
+                    <!-- Tela 3: Processos de serviço do componente -->
+                    <notebook>
+                        <page string="Processos de Serviço" name="processes">
+                            <field name="process_ids">
+                                <tree editable="bottom"
+                                      decoration-success="status == 'done'"
+                                      decoration-warning="status == 'in_progress'"
+                                      decoration-danger="status == 'deviation'"
+                                      decoration-muted="status == 'waiting'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="service_type" string="Processo"/>
+                                    <field name="service_name" string="Descrição" optional="show"/>
+                                    <field name="workcenter_id" string="Máquina"
+                                           options="{'no_create': True}"/>
+                                    <field name="machine_code" string="Código" readonly="1"
+                                           optional="show"/>
+                                    <field name="department" string="Setor"/>
+                                    <field name="status" string="Status" widget="badge"
+                                           decoration-success="status == 'done'"
+                                           decoration-warning="status == 'in_progress'"
+                                           decoration-danger="status == 'deviation'"
+                                           decoration-muted="status == 'waiting'"/>
+                                    <field name="time_start" string="Início" widget="datetime"/>
+                                    <field name="time_end" string="Fim" widget="datetime"/>
+                                    <field name="duration_hours" string="Horas" readonly="1"/>
+                                    <field name="has_deviation" string="Desvio?" widget="toggle_button"
+                                           options='{"terminology": "archive"}'/>
+                                    <button name="action_start" string="Iniciar" type="object"
+                                            icon="fa-play" class="btn-sm btn-warning"
+                                            attrs="{'invisible': [('status', 'not in', ['waiting', 'deviation'])]}"/>
+                                    <button name="action_done" string="Concluir" type="object"
+                                            icon="fa-check" class="btn-sm btn-success"
+                                            attrs="{'invisible': [('status', '!=', 'in_progress')]}"/>
+                                    <button name="action_set_deviation" string="Desvio" type="object"
+                                            icon="fa-exclamation-triangle" class="btn-sm btn-danger"
+                                            attrs="{'invisible': [('status', 'in', ['waiting', 'done'])]}"/>
+                                    <field name="notes" string="Observação" optional="show"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Desvios e Retrabalhos" name="deviations"
+                              attrs="{'invisible': [('process_ids', '=', [])]}">
+                            <field name="process_ids" readonly="1"
+                                   domain="[('has_deviation', '=', True)]">
+                                <tree string="Processos com Desvio">
+                                    <field name="service_name" string="Processo"/>
+                                    <field name="status" string="Status" widget="badge"
+                                           decoration-danger="status == 'deviation'"/>
+                                    <field name="deviation_description" string="Descrição do Desvio"/>
+                                    <field name="workcenter_id" string="Máquina"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Observações">
+                            <field name="notes" placeholder="Observações gerais sobre este componente..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree view dos componentes -->
+    <record id="view_repair_cylinder_component_tree" model="ir.ui.view">
+        <field name="name">repair.cylinder.component.tree</field>
+        <field name="model">repair.cylinder.component</field>
+        <field name="arch" type="xml">
+            <tree string="Componentes"
+                  decoration-success="component_status == 'done'"
+                  decoration-warning="component_status == 'in_progress'">
+                <field name="repair_id" string="OS"/>
+                <field name="component_type" string="Tipo"/>
+                <field name="name" string="Componente"/>
+                <field name="component_status" string="Status" widget="badge"
+                       decoration-success="component_status == 'done'"
+                       decoration-warning="component_status == 'in_progress'"
+                       decoration-muted="component_status == 'pending'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Action para abrir componente com seus processos -->
+    <record id="action_repair_component_processes" model="ir.actions.act_window">
+        <field name="name">Processos do Componente</field>
+        <field name="res_model">repair.cylinder.component</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_repair_cylinder_component_form"/>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

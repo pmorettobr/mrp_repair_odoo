@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- TREE -->
+    <record id="view_repair_order_os_tree" model="ir.ui.view">
+        <field name="name">repair.order.os.tree</field>
+        <field name="model">repair.order</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <tree string="Ordens de Trabalho"
+                  decoration-success="os_state == 'done'"
+                  decoration-warning="os_state == 'in_progress'"
+                  decoration-muted="os_state == 'cancel'"
+                  decoration-danger="is_overdue">
+                <field name="name" string="Nº OS"/>
+                <field name="order_type" string="Tipo" widget="badge"
+                       decoration-info="order_type == 'repair'"
+                       decoration-warning="order_type == 'fabrication'"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="product_name" string="Produto / Cilindro"/>
+                <field name="serial_code" string="Nº Série / TAG"/>
+                <field name="deadline_date" string="Prazo"/>
+                <field name="os_state" string="Estado" widget="badge"
+                       decoration-success="os_state == 'done'"
+                       decoration-warning="os_state == 'in_progress'"
+                       decoration-info="os_state == 'confirmed'"
+                       decoration-muted="os_state in ('cancel','draft')"/>
+                <field name="progress_percent" string="Progresso" widget="progressbar"/>
+                <field name="total_components" string="Processos" optional="show"/>
+                <field name="components_done" string="Concluídos" optional="show"/>
+                <field name="is_overdue" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- FORM -->
+    <record id="view_repair_order_os_form" model="ir.ui.view">
+        <field name="name">repair.order.os.form</field>
+        <field name="model">repair.order</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form string="Ordem de Trabalho">
+                <header>
+                    <button name="action_confirm_os" string="Confirmar"
+                            type="object" class="btn-primary"
+                            attrs="{'invisible': [('os_state', '!=', 'draft')]}"/>
+                    <button name="action_start_os" string="Iniciar"
+                            type="object" class="btn-primary"
+                            attrs="{'invisible': [('os_state', '!=', 'confirmed')]}"/>
+                    <button name="action_done_os" string="Concluir"
+                            type="object" class="btn-success"
+                            attrs="{'invisible': [('os_state', '!=', 'in_progress')]}"/>
+                    <button name="action_cancel_os" string="Cancelar"
+                            type="object" class="btn-danger"
+                            attrs="{'invisible': [('os_state', 'in', ('done', 'cancel'))]}"/>
+                    <field name="os_state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,in_progress,done"/>
+                </header>
+                <sheet>
+                    <!-- Campos nativos do repair necessarios para o ORM/JS -->
+                    <field name="state" invisible="1"/>
+                    <field name="product_id" invisible="1"/>
+                    <field name="product_uom" invisible="1"/>
+                    <field name="product_uom_category_id" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="invoice_method" invisible="1"/>
+                    <field name="invoiced" invisible="1"/>
+
+                    <div class="oe_title">
+                        <label for="name" string="Nº OS"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                            <span class="ml-2">
+                                <field name="order_type" widget="badge"
+                                       decoration-info="order_type == 'repair'"
+                                       decoration-warning="order_type == 'fabrication'"/>
+                            </span>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Identificação">
+                            <field name="order_type" string="Tipo de Ordem" required="1"/>
+                            <field name="partner_id" string="Cliente" required="1"/>
+                            <field name="product_name" string="Produto / Cilindro"
+                                   placeholder="Ex: CH Martelo, Válvula Laminador..."/>
+                            <field name="serial_code" string="Nº de Série / TAG"
+                                   placeholder="Gerado automaticamente na Fabricação"/>
+                            <field name="equipment_description" string="Descrição Adicional"
+                                   placeholder="Contexto de uso, localização..."/>
+                        </group>
+                        <group string="Prazo e Progresso">
+                            <field name="deadline_date" string="Prazo"/>
+                            <field name="total_components" string="Total de Processos"/>
+                            <field name="components_done" string="Concluídos"/>
+                            <field name="components_in_progress" string="Em Andamento"/>
+                            <field name="is_overdue" invisible="1"/>
+                            <field name="progress_percent" string="Progresso (%)"
+                                   widget="progressbar"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Componentes" name="components">
+                            <field name="cylinder_component_ids"
+                                   context="{'default_repair_id': active_id}">
+                                <tree editable="bottom"
+                                      decoration-success="component_status == 'done'"
+                                      decoration-warning="component_status == 'in_progress'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="component_type" string="Tipo"/>
+                                    <field name="name" string="Nome / Descrição"/>
+                                    <field name="component_status" string="Status"
+                                           widget="badge"
+                                           decoration-success="component_status == 'done'"
+                                           decoration-warning="component_status == 'in_progress'"
+                                           decoration-muted="component_status == 'pending'"/>
+                                    <!-- type="object" chama metodo Python — sem dependencia de xmlid externo -->
+                                    <button name="action_open_processes"
+                                            type="object"
+                                            string="Ver Processos"
+                                            icon="fa-cogs"
+                                            class="btn-sm btn-info"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH -->
+    <record id="view_repair_order_os_search" model="ir.ui.view">
+        <field name="name">repair.order.os.search</field>
+        <field name="model">repair.order</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <search string="Buscar OS">
+                <field name="name" string="Nº OS"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="product_name" string="Produto / Cilindro"/>
+                <field name="serial_code" string="Nº Série / TAG"/>
+                <separator/>
+                <filter name="repair" string="Reparos"
+                        domain="[('order_type', '=', 'repair')]"/>
+                <filter name="fabrication" string="Fabricações"
+                        domain="[('order_type', '=', 'fabrication')]"/>
+                <separator/>
+                <filter name="in_progress" string="Em Andamento"
+                        domain="[('os_state', '=', 'in_progress')]"/>
+                <filter name="confirmed" string="Confirmadas"
+                        domain="[('os_state', '=', 'confirmed')]"/>
+                <filter name="done" string="Concluídas"
+                        domain="[('os_state', '=', 'done')]"/>
+                <filter name="overdue" string="Atrasadas"
+                        domain="[('is_overdue', '=', True)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_type"    string="Tipo"
+                            context="{'group_by': 'order_type'}"/>
+                    <filter name="group_partner" string="Cliente"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_state"   string="Estado"
+                            context="{'group_by': 'os_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACTIONS -->
+    <record id="action_repair_orders_os" model="ir.actions.act_window">
+        <field name="name">Ordens de Trabalho</field>
+        <field name="res_model">repair.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_repair_order_os_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_repair_order_os_form')})]"/>
+        <field name="search_view_id" ref="view_repair_order_os_search"/>
+        <field name="context">{'search_default_in_progress': 1}</field>
+    </record>
+
+    <record id="action_repair_orders_repair" model="ir.actions.act_window">
+        <field name="name">Reparos</field>
+        <field name="res_model">repair.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_repair_order_os_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_repair_order_os_form')})]"/>
+        <field name="search_view_id" ref="view_repair_order_os_search"/>
+        <field name="domain">[('order_type', '=', 'repair')]</field>
+        <field name="context">{'default_order_type': 'repair'}</field>
+    </record>
+
+    <record id="action_repair_orders_fabrication" model="ir.actions.act_window">
+        <field name="name">Fabricações</field>
+        <field name="res_model">repair.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_repair_order_os_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_repair_order_os_form')})]"/>
+        <field name="search_view_id" ref="view_repair_order_os_search"/>
+        <field name="domain">[('order_type', '=', 'fabrication')]</field>
+        <field name="context">{'default_order_type': 'fabrication'}</field>
+    </record>
+
+</odoo>
